@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,49 +10,66 @@ namespace BlazorEFcrud.Data
     public class EmployeeService
     {
 
-        private readonly ApplicationDbContext _db;
-
-        public EmployeeService(ApplicationDbContext db)
+        private IConfiguration Configuration;
+        private DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder;
+        public EmployeeService(IConfiguration configuration)
         {
-            _db = db;
+            Configuration = configuration;
+            optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            optionsBuilder.UseSqlServer(Configuration.GetConnectionString("DefaultConntection"));
         }
 
         //Get all employees
         public List<EmployeeInfo> GetEmployees()
         {
-            var empList = _db.Employees.ToList();
-            return empList;
+            using (var dbContext = new ApplicationDbContext(optionsBuilder.Options))
+            {
+                var empList = dbContext.Employees.ToList();
+                return empList;
+            }
         }
 
         //Insert employee info
         public string Create(EmployeeInfo objEmp)
         {
-            _db.Employees.Add(objEmp);
-            _db.SaveChanges();
-            return "Succesfuly added Employee";
+            using (var dbContext = new ApplicationDbContext(optionsBuilder.Options))
+            {
+                dbContext.Employees.Add(objEmp);
+                dbContext.SaveChanges();
+                return "Succesfuly added Employee";
+            }
         }
 
         //Get employee by ID
         public EmployeeInfo GetEmployeeByID(int id)
         {
-            EmployeeInfo employee = _db.Employees.FirstOrDefault(s=>s.EmployeeID == id);
-            return employee;
+            using (var dbContext = new ApplicationDbContext(optionsBuilder.Options))
+            {
+                EmployeeInfo employee = dbContext.Employees.FirstOrDefault(s => s.EmployeeID == id);
+                return employee;
+            }
         }
 
         //Update employee
         public string UpdateEmployee(EmployeeInfo objEmp)
         {
-            _db.Employees.Update(objEmp);
-            _db.SaveChanges();
-            return "Succesfuly updated Employee";
+            using (var dbContext = new ApplicationDbContext(optionsBuilder.Options))
+            {
+                dbContext.Employees.Update(objEmp);
+                dbContext.SaveChanges();
+                return "Succesfuly updated Employee";
+            }
         }
 
         //Delete employee
         public string DeleteEmployee(EmployeeInfo objEmp)
         {
-            _db.Employees.Remove(objEmp);
-            _db.SaveChanges();
-            return "Succesfuly removed Employee";
+            using (var dbContext = new ApplicationDbContext(optionsBuilder.Options))
+            {
+                dbContext.Employees.Remove(objEmp);
+                dbContext.SaveChanges();
+                return "Succesfuly removed Employee";
+            }
         }
     }
 }
